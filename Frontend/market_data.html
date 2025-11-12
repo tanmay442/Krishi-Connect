@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KrishiConnect | Market Data</title>
+  <style>
+    :root {
+      --primary-green: #2e8b57;
+      --hover-green: #256d45;
+      --light-bg: #f0f8f5;
+      --text-dark: #333;
+      --border-color: #dcdcdc;
+    }
+
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background-color: var(--light-bg);
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar (same as dashboard) */
+    .sidebar {
+      width: 240px;
+      background-color: white;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+      padding-top: 1rem;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      z-index: 200;
+    }
+    .sidebar h2 { text-align: center; color: var(--primary-green); }
+    .sidebar a {
+      display: block;
+      padding: 0.9rem 1.2rem;
+      color: #333;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+      transition: all 0.2s;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #f0faf4;
+      border-left: 4px solid var(--primary-green);
+      color: var(--primary-green);
+      font-weight: 600;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .navbar h1 {
+      color: var(--primary-green);
+      margin: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-toggle {
+      font-size: 1.6rem;
+      background: none;
+      border: none;
+      color: var(--primary-green);
+      display: none;
+      cursor: pointer;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar {
+      background-color: var(--primary-green);
+      color: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 110%;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      width: 200px;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .profile-dropdown.show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .logout-btn {
+      display: block;
+      background-color: var(--primary-green);
+      color: white;
+      text-align: center;
+      padding: 0.6rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Layout */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .content-wrapper {
+      padding: 2rem 1rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Filters */
+    .filter-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
+    }
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      align-items: end;
+    }
+    input {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .fetch-btn {
+      grid-column: 1 / -1;
+      background-color: var(--primary-green);
+      color: white;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .fetch-btn:hover { background-color: var(--hover-green); }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .loading .spinner {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Data Cards */
+    .data-list {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+      padding: 1rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .data-entry {
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .data-entry h4 {
+      color: var(--primary-green);
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .data-entry p {
+      margin: 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #777;
+      background: #fff;
+      padding: 3rem 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 900px) {
+      .menu-toggle { display: block; }
+      .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
+      .sidebar.show { transform: translateX(0); }
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.2rem;
+    }
+
+    .page-btn {
+        background-color: var(--primary-green);
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .page-btn:hover {
+        background-color: var(--hover-green);
+    }
+
+    .page-num {
+        color: #333;
+        font-weight: 500;
+    }
+
+
+
+    @keyframes fadeIn { from {opacity: 0; transform: translateY(-5px);} to {opacity: 1; transform: translateY(0);} }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>🌾 Menu</h2>
+    <a href="{{ url_for('index') }}">🏠 Dashboard</a>
+    <a href="{{ url_for('market_data') }}" class="active">📊 Market Data</a>
+    <a href="#">🚜 Mandi-to-Market</a>
+    <a href="#">🤝 Ongoing Deals</a>
+    <a href="#">🧾 Explore Bids</a>
+    <a href="#">➕ Add New Listing</a>
+    <a href="#">🆘 Help & Support</a>
+  </div>
+
+  <!-- Main Section -->
+  <div class="main-content">
+    <div class="navbar">
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+      <h1>KrishiConnect</h1>
+      <div class="profile" id="profile">
+        <div class="avatar">{{ current_user.name[0]|upper }}</div>
+        <div>
+          <div class="name">{{ current_user.name }}</div>
+          <div class="role">{{ current_user.tag|capitalize }}</div>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div>{{ current_user.name }}</div>
+          <div style="font-size:0.85rem; color:#666;">{{ current_user.tag|capitalize }}</div>
+          <a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="filter-card">
+        <form method="GET" action="{{ url_for('market_data') }}">
+          <input type="text" name="commodity" placeholder="Crop Type (optional)" value="{{ form.commodity or '' }}">
+          <input type="text" name="market" placeholder="Market (e.g., Jaipur)" value="{{ form.market or '' }}">
+          <input type="text" name="district" placeholder="District (e.g., Jaipur)" value="{{ form.district or '' }}">
+          <input type="text" name="state" placeholder="State (e.g., Rajasthan)" value="{{ form.state or '' }}">
+          <input type="hidden" name="limit" value="200">
+          <input type="hidden" name="output_format" value="json">
+          <input type="hidden" name="search" value="true">
+          <button type="submit" class="fetch-btn">
+            <div class="spinner"></div> Fetch Live Prices
+          </button>
+        </form>
+      </div>
+
+      {% if data and data|length > 0 %}
+      <div class="data-list">
+        {% for entry in data %}
+        <div class="data-entry">
+          <h4>{{ entry.commodity }} {% if entry.variety %}- {{ entry.variety }}{% endif %}</h4>
+          <p><strong>Market:</strong> {{ entry.market }}, {{ entry.district }}, {{ entry.state }}</p>
+          <p><strong>Prices (₹/Quintal):</strong> Min: {{ entry.min_price }}, Max: {{ entry.max_price }}, Modal: {{ entry.modal_price }}</p>
+          <p><strong>Arrival Date:</strong> {{ entry.arrival_date }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% elif form.search %}
+      <div class="empty-state">No records found for your search.</div>
+      {% else %}
+      <div class="empty-state">Enter a state or market to view live mandi data.</div>
+      {% endif %}
+    </div>
+    
+  </div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const profile = document.getElementById('profile');
+  const dropdown = document.getElementById('profileDropdown');
+  const form = document.querySelector('form');
+  const fetchBtn = document.querySelector('.fetch-btn');
+
+  // Sidebar toggle
+  function toggleMenu() { sidebar.classList.toggle('show'); }
+  document.addEventListener('click', e => {
+    if (!profile.contains(e.target)) dropdown.classList.remove('show');
+    if (!sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) sidebar.classList.remove('show');
+  });
+  profile.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdown.classList.toggle('show');
+  });
+
+  // Spinner while submitting
+  form.addEventListener('submit', () => {
+    fetchBtn.classList.add('loading');
+  });
+
+  // 🌿 PAGINATION (Client-side)
+  const entries = Array.from(document.querySelectorAll('.data-entry'));
+  const perPage = 10;
+  let currentPage = 1;
+
+  function renderPage(page) {
+    const total = entries.length;
+    const totalPages = Math.ceil(total / perPage);
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+
+    // Hide all entries
+    entries.forEach((el, i) => {
+      el.style.display = (i >= start && i < end) ? "flex" : "none";
+    });
+
+    // Update buttons
+    document.querySelector('.pagination')?.remove(); // remove old pagination
+    if (totalPages > 1) {
+      const pagination = document.createElement('div');
+      pagination.className = 'pagination';
+      pagination.innerHTML = `
+        ${page > 1 ? `<button class="page-btn" onclick="renderPage(${page - 1})">← Previous</button>` : ''}
+        <span class="page-num">Page ${page} of ${totalPages}</span>
+        ${page < totalPages ? `<button class="page-btn" onclick="renderPage(${page + 1})">Next →</button>` : ''}
+      `;
+      document.querySelector('.data-list').after(pagination);
+    }
+  }
+
+  // Render only if there’s data
+  if (entries.length > 0) renderPage(1);
+</script>
+
+</body>
+</html>
