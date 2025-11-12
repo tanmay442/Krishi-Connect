@@ -1,0 +1,9 @@
+# krishiconnect/requirements.txt
+
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-CORS  pip install -r requirements.txt
+requests
+python-dotenv
+Werkzeug

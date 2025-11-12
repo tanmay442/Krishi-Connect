@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to KrishiConnect</title>
+  <style>
+    :root {
+      --primary-green: #2e8b57;
+      --hover-green: #256d45;
+      --bg-light: #f0f8f5;
+      --text-dark: #333;
+      --border-color: #ccc;
+    }
+
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom right, var(--bg-light), #eaf3e7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem 2.5rem;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    h1 {
+      color: var(--primary-green);
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+    }
+
+    p.subtitle {
+      color: #666;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #dfe6e9;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-link {
+      flex: 1;
+      padding: 1rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      color: #777;
+      transition: 0.3s;
+    }
+
+    .tab-link.active {
+      color: var(--primary-green);
+      font-weight: 600;
+      border-bottom: 3px solid var(--primary-green);
+    }
+
+    .form-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .form-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.4rem;
+      color: #444;
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    .submit-btn {
+      background-color: var(--primary-green);
+      color: white;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      transition: 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--hover-green);
+    }
+
+    .flash-messages {
+      list-style: none;
+      padding: 0;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .flash-messages li {
+      color: #b71c1c;
+      background: #fce4e4;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #777;
+    }
+
+    /* ✅ RESPONSIVE ADAPTATION */
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+        max-width: 95%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      p.subtitle {
+        font-size: 0.9rem;
+      }
+
+      .tab-link {
+        padding: 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .form-group input,
+      .form-group select {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+      }
+
+      .submit-btn {
+        font-size: 0.95rem;
+        padding: 0.7rem;
+      }
+
+      footer {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌾 KrishiConnect</h1>
+    <p class="subtitle">Empowering Farmers Through Direct Market Access</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div class="tabs">
+      <button class="tab-link active" onclick="openTab(event, 'signup')">Sign Up</button>
+      <button class="tab-link" onclick="openTab(event, 'signin')">Sign In</button>
+    </div>
+
+    <div id="signup" class="form-content active">
+      <h2>Create Your Account</h2>
+      <form action="{{ url_for('register') }}" method="post">
+        <div class="form-group">
+          <label for="tag">I am a:</label>
+          <select name="tag" required>
+            <option value="farmer">👩‍🌾 Farmer</option>
+            <option value="buyer">🧺 Buyer</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+        <div class="form-group"><label>Contact Number</label><input type="text" name="contact_number" required></div>
+        <div class="form-group"><label>State</label><input type="text" name="state" required></div>
+        <button type="submit" class="submit-btn">Join KrishiConnect</button>
+      </form>
+    </div>
+
+    <div id="signin" class="form-content">
+      <h2>Welcome Back!</h2>
+      <form action="{{ url_for('login') }}" method="post">
+        <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+        <button type="submit" class="submit-btn">Sign In</button>
+      </form>
+    </div>
+
+    <footer>Building a Fair Marketplace for Every Farmer 🌱</footer>
+  </div>
+
+  <script>
+    function openTab(evt, tabName) {
+      const formContent = document.getElementsByClassName("form-content");
+      const tabLinks = document.getElementsByClassName("tab-link");
+      for (let i = 0; i < formContent.length; i++) formContent[i].style.display = "none";
+      for (let i = 0; i < tabLinks.length; i++) tabLinks[i].classList.remove("active");
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.classList.add("active");
+    }
+  </script>
+</body>
+</html>
